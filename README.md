@@ -10,7 +10,7 @@ Prepares Kali for a pentest by enabling session logging, installing tools, and m
 ## One-liner:
 (don't forget to reboot after the script finishes :)
 ~~~
-curl -k -s https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/kali-setup-script.sh | bash
+curl -k -s https://raw.githubusercontent.com/carldenis/kali-setup-script/master/kali-setup-script.sh | bash
 ~~~
 
 ## Full feature list:

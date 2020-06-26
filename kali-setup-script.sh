@@ -5,8 +5,7 @@ usage()
     cat <<EOF
 Usage: ${0##*/} [option]
   Options:
-    --i3            Set up i3 as the default window manager
-    --remove-i3     Set window manager back to XFCE defaults
+    --extras        Install more than my minimal setup
     --no-zmap       Don't install zmap asset inventory
     --help          Display this message
 
@@ -18,11 +17,8 @@ exit 0
 while :
 do
     case $1 in
-        i3|-i3|--i3)
-            install_i3=true;
-            ;;
-        remove-i3|-remove-i3|--remove-i3)
-            remove_i3=true;
+    	-extras|--extras)
+            install_extras=true;
             ;;
         no-zmap|-no-zmap|--no-zmap)
             no_zmap=true;
@@ -76,21 +72,7 @@ LLMNR=no' > /etc/systemd/network/90-disable-llmnr.network
 
 
 printf '\n============================================================\n'
-printf '[+] Removing the abomination that is gnome-software\n'
-printf '============================================================\n\n'
-killall gnome-software
-while true
-do
-    pgrep gnome-software &>/dev/null || break
-    sleep .5
-done
-apt-get remove gnome-software
-
-
-printf '\n============================================================\n'
 printf '[+] Installing:\n'
-printf '     - wireless drivers\n'
-printf '     - golang & environment\n'
 printf '     - docker\n'
 printf '     - powershell\n'
 printf '     - terminator\n'
@@ -105,8 +87,6 @@ printf '     - DNS Server\n'
 printf '     - hcxtools (hashcat)\n'
 printf '============================================================\n\n'
 apt-get install \
-    realtek-rtl88xxau-dkms \
-    golang \
     docker.io \
     powershell \
     terminator \
@@ -120,11 +100,28 @@ apt-get install \
     nfs-kernel-server \
     dnsmasq \
     hcxtools \
-    mosh \
-    vim
+    remmina \
+    vim \
+    gvfs-backends # smb in file explorer
 python2 -m pip install pipenv
 python3 -m pip install pipenv
 python3 -m pip install mitmproxy
+
+
+if [ -n "$install_extras" ]
+then
+printf '\n============================================================\n'
+printf '[+] Installing:\n'
+printf '     - wireless drivers\n'
+printf '     - golang & environment\n'
+printf '     - mosh\n'
+printf '\n============================================================\n\n'
+apt-get install \
+    realtek-rtl88xxau-dkms \
+    golang \
+    mosh
+fi
+
 
 # enable and start docker
 systemctl stop docker &>/dev/null
@@ -132,13 +129,15 @@ echo '{"bip":"172.16.199.1/24"}' > /etc/docker/daemon.json
 systemctl enable docker --now
 
 # initialize mitmproxy cert
-mitmproxy &>/dev/null &
+sudo -u kali mitmproxy &>/dev/null &
 sleep 5
 killall mitmproxy
 # trust certificate
-cp ~/.mitmproxy/mitmproxy-ca-cert.cer /usr/local/share/ca-certificates/mitmproxy-ca-cert.crt
+cp /home/kali/.mitmproxy/mitmproxy-ca-cert.cer /usr/local/share/ca-certificates/mitmproxy-ca-cert.crt
 update-ca-certificates
 
+if [ -n "$install_extras" ]
+then
 mkdir -p /root/go
 gopath_exp='export GOPATH="$HOME/.go"'
 path_exp='export PATH="/usr/local/go/bin:$GOPATH/bin:$PATH"'
@@ -147,6 +146,7 @@ sed -i '/export PATH=.*GOPATH.*/c\' ~/.profile
 echo $gopath_exp | tee -a "$HOME/.profile"
 grep -q -F "$path_exp" "$HOME/.profile" || echo $path_exp | tee -a "$HOME/.profile"
 . "$HOME/.profile"
+fi
 
 # enable NFS server (without any shares)
 systemctl enable nfs-server
@@ -164,13 +164,13 @@ printf '============================================================\n\n'
 apt-get update
 apt-get upgrade
 
-
+if [ -n "$install_extras" ]
+then
 printf '\n============================================================\n'
 printf '[+] Installing Bettercap\n'
 printf '============================================================\n\n'
 apt-get install libnetfilter-queue-dev libpcap-dev libusb-1.0-0-dev
 go get -v github.com/bettercap/bettercap
-
 
 printf '\n============================================================\n'
 printf '[+] Installing EapHammer\n'
@@ -248,6 +248,7 @@ ln -s ~/.local/share/virtualenvs/$(ls /root/.local/share/virtualenvs | grep Crac
 cd / && rm -r /opt/CrackMapExec
 apt-get install crackmapexec
 
+fi
 
 printf '\n============================================================\n'
 printf '[+] Installing Impacket\n'
@@ -299,113 +300,6 @@ printf '[+] Unzipping RockYou\n'
 printf '============================================================\n\n'
 gunzip /usr/share/wordlists/rockyou.txt.gz 2>/dev/null
 ln -s /usr/share/wordlists ~/Downloads/wordlists 2>/dev/null
-
-
-if [ -n "$remove_i3" ]
-then
-
-    printf '\n============================================================\n'
-    printf '[+] Removing i3\n'
-    printf '============================================================\n\n'
-    rm ~/.config/autostart/i3.desktop
-    rm ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml
-    rm -r ~/.cache/sessions
-fi
-
-
-if [ -n "$install_i3" ]
-then
-
-    printf '\n============================================================\n'
-    printf '[+] Installing i3\n'
-    printf '============================================================\n\n'
-    # install dependencies
-    apt-get install i3 j4-dmenu-desktop fonts-hack feh
-    # make sure .config directory exists
-    mkdir -p /root/.config
-    # make startup script
-    echo '#!/bin/bash
-xrandr --output eDP-1 --mode 1920x1080
-sleep 1
-feh --bg-scale /usr/share/wallpapers/wallpapers/bls_wallpaper.png
-' > /root/.config/i3_startup.sh
-
-    # set up config
-    grep '### KALI SETUP SCRIPT ###' /etc/i3/config.keycodes || echo '
-### KALI SETUP SCRIPT ###
-# win+L lock screen
-# bindsym $sup+l exec i3lock -i /usr/share/wallpapers/wallpapers/bls_wallpaper.png
-# win+E file explorer
-# bindsym $sup+e exec thunar
-# resolution / wallpaper
-exec_always --no-startup-id bash "/root/.config/i3_startup.sh"
-
-# BLS theme
-# class             border  background  text        indicator   child_border
-client.focused      #666666 #666666     #FFFFFF     #FFFFFF     #666666
-' >> /etc/i3/config.keycodes
-
-    # gnome terminal
-    sed -i 's/^bindcode $mod+36 exec.*/bindcode $mod+36 exec gnome-terminal/' /etc/i3/config.keycodes
-    # improved dmenu
-    sed -i 's/.*bindcode $mod+40 exec.*/bindcode $mod+40 exec --no-startup-id j4-dmenu-desktop/g' /etc/i3/config.keycodes
-    # mod+shift+e logs out of gnome
-    sed -i 's/.*bindcode $mod+Shift+26 exec.*/bindcode $mod+Shift+26 exec xfce4-session-logout/g' /etc/i3/config.keycodes
-    # hack font
-    sed -i 's/^font pango:.*/font pango:hack 11/' /etc/i3/config.keycodes
-    # focus child
-    sed -i 's/bindcode $mod+39 layout stacking/#bindcode $mod+39 layout stacking/g' /etc/i3/config.keycodes
-    sed -i 's/.*bindsym $mod+d focus child.*/bindcode $mod+39 focus child/g' /etc/i3/config.keycodes
-
-    # get rid of saved sessions
-    rm -r /root/.cache/sessions/*
-
-    # hide xfwm
-    sed -i '/export GOPATH=.*/c\' /usr/share/applications/xfce-wm-settings.desktop
-    echo 'Hidden=true' >> /usr/share/applications/xfce-wm-settings.desktop
-
-    # create i3 autostart file
-    mkdir -p /root/.config/autostart 2>/dev/null
-    cat <<EOF > /root/.config/autostart/i3.desktop
-[Desktop Entry]
-Encoding=UTF-8
-Version=0.9.4
-Type=Application
-Name=i3
-Comment=i3
-Exec=i3
-OnlyShowIn=XFCE;
-RunHook=0
-StartupNotify=false
-Terminal=false
-Hidden=false
-EOF
-
-    # create XFCE session
-    mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml/ 2>/dev/null
-    cat <<EOF > /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml
-<?xml version="1.0" encoding="UTF-8"?>
-
-<channel name="xfce4-session" version="1.0">
-  <property name="general" type="empty">
-    <property name="FailsafeSessionName" type="string" value="Failsafe"/>
-    <property name="LockCommand" type="string" value=""/>
-  </property>
-  <property name="sessions" type="empty">
-    <property name="Failsafe" type="empty">
-      <property name="IsFailsafe" type="bool" value="true"/>
-      <property name="Count" type="int" value="1"/>
-      <property name="Client0_Command" type="array">
-        <value type="string" value="xfsettingsd"/>
-      </property>
-      <property name="Client0_PerScreen" type="bool" value="false"/>
-    </property>
-  </property>
-</channel>
-EOF
-
-fi
-
 
 if [ -z "$no_zmap" ]
 then
@@ -474,23 +368,19 @@ then
     gsettings set org.gnome.desktop.background picture-options scaled
     xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
 
-
+if [ -z "$install_extras" ]
+then
     printf '\n============================================================\n'
     printf '[+] Installing:\n'
     printf '     - gnome-screenshot\n'
     printf '     - LibreOffice\n'
-    printf '     - Remmina\n'
     printf '     - gnome-terminal\n'
-    printf '     - mosh\n'
-    printf '     - file explorer SMB capability\n'
     printf '============================================================\n\n'
     apt-get install \
         gnome-screenshot \
         libreoffice \
-        remmina \
-        gnome-terminal \
-        gvfs-backends # smb in file explorer
-
+        gnome-terminal
+fi
 
     printf '\n============================================================\n'
     printf '[+] Setting Default Terminal\n'
@@ -521,6 +411,8 @@ then
     gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
 
 
+if [ -z "$install_extras" ]
+then
     printf '\n============================================================\n'
     printf '[+] Installing Bloodhound\n'
     printf '============================================================\n\n'
@@ -561,6 +453,7 @@ then
     ln -s /opt/cypheroth ~/Downloads/cypheroth
     ln -s /opt/cypheroth/cypheroth.sh /usr/local/bin/cypheroth
 
+fi
 
     printf '\n============================================================\n'
     printf '[+] Installing Firefox\n'
@@ -600,6 +493,8 @@ fi
     sed -i 's#Exec=/usr/bin/chromium %U#Exec=/usr/bin/chromium --no-sandbox %U#g' /usr/share/applications/chromium.desktop
 
 
+if [ -z "$install_extras" ]
+then
     printf '\n============================================================\n'
     printf '[+] Installing Sublime Text\n'
     printf '============================================================\n\n'
@@ -619,7 +514,42 @@ fi
     apt-get install gconf2 gvfs-bin
     dpkg -i boostnote.deb
     rm boostnote.deb
+fi
 
+    printf '\n============================================================\n'
+    printf '[+] Configuring Terminator\n'
+    printf '============================================================\n\n'
+    mkdir -p /home/kali/.config/terminator
+    cat <<EOF >/home/kali/.config/terminator/config
+[global_config]
+[keybindings]
+  go_up = <Alt>k
+  go_down = <Alt>j
+  go_left = <Alt>h
+  go_right = <Alt>l
+  split_horiz = <Primary><Shift>h
+  split_vert = <Primary><Shift>v
+  paste =
+  layout_launcher=
+[profiles]
+  [[default]]
+    cursor_color = "#aaaaaa"
+    font = Monospace 8
+    show_titlebar = False
+    scrollbar_position = hidden
+    scrollback_infinite = True
+    use_system_font = False
+[layouts]
+  [[default]]
+    [[[window0]]]
+      type = Window
+      parent = ""
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+[plugins]
+EOF
+    chown -R kali:kali /home/kali/.config
 
     printf '\n============================================================\n'
     printf '[+] Cleaning Up\n'
