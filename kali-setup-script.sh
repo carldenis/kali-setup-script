@@ -88,6 +88,7 @@ printf '     - hcxtools (hashcat)\n'
 printf '============================================================\n\n'
 apt-get install \
     docker.io \
+    scdaemon \
     powershell \
     terminator \
     python3-dev \
@@ -353,22 +354,22 @@ then
     # dark theme
     # gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
     mkdir -p '/usr/share/wallpapers/wallpapers/' &>/dev/null
-    wallpaper_file="$(find . -type f -name bls_wallpaper.png)"
+    wallpaper_file="$(find . -type f -name wallpaper.png)"
     if [[ -z "$wallpaper_file" ]]
     then
-        wget -P '/usr/share/wallpapers/wallpapers/' https://raw.githubusercontent.com/blacklanternsecurity/kali-setup-script/master/bls_wallpaper.png
+        wget -P '/usr/share/wallpapers/wallpapers/' https://raw.githubusercontent.com/carldenis/kali-setup-script/master/wallpaper.png
     else
-        cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/bls_wallpaper.png'
+        cp "$wallpaper_file" '/usr/share/wallpapers/wallpapers/wallpaper.png'
     fi
     gsettings set org.gnome.desktop.background primary-color "#000000"
     gsettings set org.gnome.desktop.background secondary-color "#000000"
     gsettings set org.gnome.desktop.background color-shading-type "solid"
-    gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
-    gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/bls_wallpaper.png"
+    gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/wallpapers/wallpapers/wallpaper.png"
+    gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/wallpapers/wallpapers/wallpaper.png"
     gsettings set org.gnome.desktop.background picture-options scaled
-    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/bls_wallpaper.png
+    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s /usr/share/wallpapers/wallpapers/wallpaper.png
 
-if [ -z "$install_extras" ]
+if [ -n "$install_extras" ]
 then
     printf '\n============================================================\n'
     printf '[+] Installing:\n'
@@ -411,7 +412,7 @@ fi
     gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
 
 
-if [ -z "$install_extras" ]
+if [ -n "$install_extras" ]
 then
     printf '\n============================================================\n'
     printf '[+] Installing Bloodhound\n'
@@ -493,7 +494,7 @@ fi
     sed -i 's#Exec=/usr/bin/chromium %U#Exec=/usr/bin/chromium --no-sandbox %U#g' /usr/share/applications/chromium.desktop
 
 
-if [ -z "$install_extras" ]
+if [ -n "$install_extras" ]
 then
     printf '\n============================================================\n'
     printf '[+] Installing Sublime Text\n'

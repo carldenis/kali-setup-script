@@ -17,32 +17,37 @@ curl -k -s https://raw.githubusercontent.com/carldenis/kali-setup-script/master/
 
 1. Enables details logging of terminal sessions
 	- Including ALL OUTPUT (saved to ~/Logs)
-1. Installs the following:
+2. Installs the following:
 	1. CrackMapExec (from GitHub)
-	1. Impacket (from GitHub)
-	1. Bloodhound (from GitHub)
-	1. EAPhammer (from GitHub)
-	1. patator (network brute-force tool)
-	1. PCredz
-	1. Gowitness
-	1. EavesARP
-	1. bettercap
-	1. docker
-	1. Firefox (official non-ESR version)
-	1. Chromium
-	1. Sublime Text
-	1. BoostNote
-	1. golang (plus environment)
-	1. zmap
-	1. LibreOffice
-	1. htop
-	1. Remmina
-	1. gnome-screenshot
-	1. realtek-rtl88xxau-dkms (ALFA wireless drivers)
-	1. i3 + XFCE desktop environment (optional)
-1. Updates system
-1. Removes gnome-software
-1. Disables auto-lock
-1. Enables tap-to-click
-1. Initializes Metasploit database
-1. Installs rad BLS wallpaper
+	2. Impacket (from GitHub)
+	3. Bloodhound (from GitHub)
+	4. EAPhammer (from GitHub)
+	5. patator (network brute-force tool)
+	6. PCredz
+	7. Gowitness
+	8. EavesARP
+	9. bettercap
+	10. docker
+	11. Firefox (official non-ESR version)
+	12. Chromium
+	13. Sublime Text (optional)
+	14. BoostNote
+	15. golang (plus environment)
+	16. zmap
+	17. LibreOffice (optional)
+	18. htop
+	19. Remmina
+	20. gnome-screenshot (optional)
+	21. realtek-rtl88xxau-dkms (ALFA wireless drivers)
+3. Updates system
+4. Disables auto-lock
+5. Enables tap-to-click
+6. Initializes Metasploit database
+7. Installs wallpaper
+
+# credits
+
+Initial script by blacklanternsecurity;
+
+Wallpaper by Rudy and Peter Skitterians from Pixabay; Thank you! ; https://pixabay.com/photos/donald-duck-spotlight-comic-cartoon-498512/
+
